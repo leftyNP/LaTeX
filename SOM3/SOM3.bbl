@@ -1,0 +1,45 @@
+\begin{thebibliography}{1}
+
+\bibitem{Lipnikov2004}
+K.~Lipnikov, J.~Morel, M.~Shashkov.
+\newblock \emph{Mimetic Finite Difference Methods for Diffusion Equations on
+  Non-Orthogonal Non-Conformal Meshes}.
+\newblock Journal of Computational Physics, 199(2):589 -- 597: 2004.
+
+\bibitem{Runnels2006}
+S.~Runnels, K.~Lipnikov, M.~Shashkov.
+\newblock \emph{Mathematic and Algorithmic Details for Applying the Local
+  Support Operator Method on Polyhedral Grids}.
+\newblock Technical Report Version 2006-07-17-a, Los Alamos National Labs:
+  2006.
+
+\bibitem{Hyman1997}
+J.~M. Hyman, M.~J. Shashkov, S.~Steinberg.
+\newblock \emph{The Numerical Solution of Diffusion Problems in Strongly
+  Heterogeneous Non-Isotropic Materials}.
+\newblock Journal of Computational Physics, 132(1):130--148: 1997.
+
+\bibitem{Hyman1998}
+J.~M. Hyman, M.~J. Shashkov.
+\newblock \emph{Approximation of Boundary Conditions for Mimetic
+  Finite-Difference Methods}.
+\newblock Computers \& Mathematics with Applications, 36(5):79 -- 99: 1998.
+
+\bibitem{Hyman2002}
+J.~M. Hyman, J.~E. Morel, M.~J. Shashkov, S.~Steinberg.
+\newblock \emph{Mimetic Finite Difference Methods for Diffusion Equations}.
+\newblock Computational Geosciences, 6(3-4):333--325: 2002.
+
+\bibitem{Hyman2004}
+J.~M. Hyman, S.~Steinberg.
+\newblock \emph{The Convergence of Mimetic Discretization for Rough Grids}.
+\newblock Computers \& Mathematics with Applications, 47(10-11):1565 -- 1610:
+  2004.
+
+\bibitem{Morel1998}
+J.~E. Morel, R.~M. Roberts, M.~J. Shashkov.
+\newblock \emph{A Local Support-Operators Diffusion Discretization Scheme for
+  Quadrilateral r-z Meshes}.
+\newblock Journal of Computational Physics, 144(1):17--51: 1998.
+
+\end{thebibliography}

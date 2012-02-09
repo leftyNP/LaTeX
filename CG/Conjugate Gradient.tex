@@ -1,0 +1,353 @@
+\documentclass[11pt,letterpaper,oneside,notitlepage]{article}	% specify paper type/format
+
+\newcommand{\bfa}{{\bf A}}						% Bold A
+\newcommand{\ip}[2]{\langle \vec #1,\vec #2 \rangle}	% Inner product
+\newcommand{\aip}[2]{\langle \vec #1,\bfa\vec #2 \rangle}	% A-Inner product (A-norm)
+
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}	% partial derivative
+\newcommand{\tensor}{\overleftrightarrow}		% tensor command
+\newcommand{\del}{\vec\nabla}				% Del operator
+\newcommand{\dop}{\tensor{\mathcal{D}}}		% Divergence operator (contrived)
+\newcommand{\flux}{\tensor{\mathcal{G}}}		% Flux operator (contrived)
+\newcommand{\yestag}{\tag{\theequation}\stepcounter{equation}}	% tags an equation number in the align* structure
+\newcommand{\eq}[1]{Equation \eqref{#1}}		% Formated equation command
+
+\setlength{\parindent}{6mm}  					% paragraph indent size
+\newcommand{\pindent}[1]{\hspace{6mm}}  		% first paragraph indent size (match value with \parindent)
+\linespread{1} 		     						% set spacing for entire paper
+										% 1.6 is double spacing, 1 is single spaced
+
+\usepackage{setspace}						% Allows me to set entire document spacing
+\usepackage{amsmath}						% Needed for tensor symbol \overleftrightarrow{}
+\usepackage{graphicx}						% Allows figures to be plotted
+\usepackage{subfigure}						% Make multiple images in one figure
+\numberwithin{equation}{section}				% Makes equation number relative to section
+
+\begin{document}							% above = preamble, below = document
+
+\title{Primer for the Conjugate Gradient Method\\ {\small Notes to help introduce and derive this method}}
+\author{Nick Patterson}
+\date{April 22, 2011}								% sets date
+\maketitle									% compiles title, author, and date
+
+%\newpage
+\tableofcontents
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction and Definitions}%%%%%%%%%%%%%%
+\pindent{}The Conjugate Gradient (CG) method is an efficient algorithm used to solve the matrix equation, $\bfa \vec x = \vec b$, where $\bfa$ is a Symmetric Positive-Definite (SPD) matrix. The size of the matrix and vectors are $\vec x \in \mathcal{R}^{n\times 1}$, $\vec b \in \mathcal{R}^{n\times 1}$, $\bfa \in \mathcal{R}^{n\times n}$, and $n$ is some integer. This method is considered efficient because, if one where to assume no round-off error, it will converge to the exact solution in at most $n$ steps\cite{CG1952}. Further properties of this method are rapid convergence, numerically stable, each step gives a better estimate of the solution than the previous one, each step should depend on the original data (i.e. the matrix \bfa), and at any step one can start over using the last estimate obtained as the initial guess\cite{CG1952}.
+
+Some mathematical definitions needed before moving on further are given here. A matrix (assumed to be real) is symmetric if it is equal to its transpose, $\bfa = \bfa^T$, where the superscript $T$ denotes the transpose. A positive-definite matrix, which is related conceptually to a positive scalar, is defined as a matrix where the following property holds, $\vec x^T \bfa \vec x >0, \forall \vec x \neq \vec 0$. The inner product of two vectors, $\vec x$ and $\vec y$, is defined as the scalar $\ip{x}{y}= \vec x^T \vec y = x_1 y_1 + x_2 y_2 + \cdots + x_n y_n$. Two vectors are defined as normal or orthogonal if $\ip{x}{y} = 0$. The magnitude of a vector is defined as $|\vec x|=\sqrt{x_1^2+\cdots+x_n^2}=\sqrt{\ip{x}{x}}$. One can include a symmetric matrix in an inner product, called an A-norm, with the following rules, 
+\begin{align*}
+\ip{x}{y}_\bfa &= \aip{x}{y} \\
+&= \left \langle \bfa^T\vec x,\vec y \right \rangle \\
+&= \left \langle \bfa \vec x,\vec y \right \rangle \yestag
+.\end{align*}
+Two vectors are defined as conjugate, also known as A-orthogonal, if the A-norm is zero, $\ip{x}{y}_\bfa = 0$. A basis is a set of vectors which span a vector space. While orthogonality is not a necessary property of a basis, no basis vector can be zero or parallel to another basis vector. Let the set $\{\vec p_i\}_{i=1}^n$ form a basis for a vector space of $n$ vectors, each with $n$ components. Any arbitrary vector $\vec x$ can be written in terms of a basis and a corresponding set of scalars, $\{ \alpha_i\}_{i=1}^n$ as shown,
+\begin{equation} \vec x = \alpha_1 \vec p_1 + \alpha_2 \vec p_2 + \cdots + \alpha_n \vec p_n \label{Basis} .\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conjugate Gradient Algorithm}%%%%%%%%%%%%%%
+\pindent{}With these definitions in place, we shall now present the CG algorithm. The rest of this document will discuss derivations and alternative expressions. The following algorithm will solve the matrix equation, $\bfa \vec x = \vec b$, where $\vec p_i$ are the basis vectors or search directions, $\vec r_i$ are the residual vectors, and $\alpha_i$ and $\beta_i$ are a set of scalars. The residual vector is defined as $\vec r_i = \vec b - \bfa\vec x_i$.
+\begin{tabbing}
+\bf CG \= \bf Alg\=\bf orit\=\bf hm \=\\
+\>\bf Initialize\\
+\>\>$\vec x_0$ \> = 0 \= ($x_0$ can be defined on input, default is zero)\\
+\>\>$\vec p_0$ \>$= \vec r_0 =\vec b - \bfa \vec x_0$ \\
+\> \bf Loop \\
+\>\> $\alpha_i$\>$ = \dfrac{\ip{p_i}{r_i}}{\aip{p_i}{p_i}} $\\
+\>\> $\vec x_{i+1}$\>$ = \vec x_i + \alpha_i \vec p_i$ \\
+\>\> $\vec r_{i+1}$\>$ = \vec r_i - \alpha_i \bfa \vec p_i$ \\
+\>\> $\beta_i$\>$ =-\dfrac{\aip{r_{i+1}}{p_i}}{\aip{p_i}{p_i}} $\\
+\>\> $\vec p_{i+1}$\>$ = \vec r_{i+1} + \beta_i \vec p_i$
+\end{tabbing}
+The initial guess can be either an input to the function, or it can be chosen randomly. An initial guess of a zero vector can be assumed for simplicity. As it is written here, one needs to store every vector $\vec x_i$, $\vec p_i$, and $\vec r_i$, as well as each scalar $\alpha_i$ and $\beta_i$. However, in practice, one needs to store one vector each for the solution, residual, and search-direction, as well as a single value for the scalar $\alpha$ and a single value for $\beta$. The only additional values needed to be stored is the magnitudes of the residual for both the previous and current time step. For high performance, the matrix $\bfa$ does not even need to be formed, only a procedure to store the result of multiplying the sparse matrix $\bfa$ with the current step's search direction, $\vec p_i$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Pillars of the Conjugate Gradient Method}%%%%%%%%%%%%%%
+\pindent{}A large number of properties and relations can be written down from this algorithm, none more important than the following two. CG produces a set of orthogonal residual vectors and a set of mutually conjugate basis vectors\cite{Trefethen97}, shown as follows:
+\begin{align}
+\ip{r_i}{r_j} &= 0 &\quad(&j<i) \label{OrthRes}\\
+\aip{p_i}{p_j} &= 0 &\quad(&j<i) \label{ConjP}
+.\end{align}
+
+\subsection{Induction Proof of Orthogonal Residuals}%%%%%%%%%%%%%%
+\pindent{}The proof of \eq{OrthRes} comes from induction. From the algorithm, we know $\vec r_0 = \vec p_0 = \vec b$, and we have 
+\begin{align}
+\vec r_{i+1} &= \vec r_i - \alpha_i\bfa\vec p_i \label{ResRec} \\  \notag % ResRec=Residual Recurrance
+\vec r_{i+1}^T &= \vec r_i^T - \alpha_i\vec p_i^T\bfa.
+\end{align}
+
+\subsubsection{Trivial Step ($j<i-1$)}%%%%%%%%%%%%%%
+\pindent{}Starting for the case of $(j<i-1)$, from the trivial step, when $j=0$, we have
+\begin{align*}
+\ip{r_i}{r_0} &= \langle \vec r_{i-1} - \alpha_i\bfa\vec p_{i-1} ,\vec b\rangle \\
+&=  \vec r_{i-1}^T\vec b - \alpha_i\vec p_{i-1}^T\bfa\vec p_0 \\ 
+&=  \ip{r_{i-1}}{b}
+,\end{align*}
+where we have used the conjugate nature of $\vec p_i$ to get to the last step. Moving terms to the same side, this last step shows $\ip{r_{i-1}- \vec r_i}{r_0} = 0$. Manipulation of \eq{ResRec} gives $\vec r_{i-1}-\vec r_i = \alpha_i \bfa\vec p_{i-1}$. Therefore, we have
+\begin{align*}
+\langle \vec r_{i-1}-\vec r_i,\vec r_0 \rangle &= \langle \alpha_i \bfa\vec p_{i-1} , \vec p_0 \rangle \\
+&= \alpha_i \langle \vec p_{i-1} , \bfa\vec p_0 \rangle \\
+&= 0,
+\end{align*}
+where the last statement is due to the A-orthogonality of $\vec p_i$, and the fact that  $j=0$ and $j<i-1$. So, to prove that the residuals are orthogonal for $j<i-1$, the trivial step is complete. 
+
+\subsubsection{Induction Hypothesis ($j<i-1$)}%%%%%%%%%%%%%%
+\pindent{}To take the next step in the proof, we must first make the induction hypothesis, 
+\[
+\ip{r_i}{r_j} = 0
+\]
+and then show 
+\[
+\ip{r_i}{r_{j+1}} = 0
+.\]
+By simply using \eq{ResRec}, we have
+\begin{align*}
+\ip{r_i}{r_{j+1}} &= \ip{r_i}{r_j} -\alpha_{j+1} \aip{r_i}{p_j} \\
+\ip{r_i}{r_{j+1}} &= -\alpha_{j+1} \aip{r_i}{p_j}
+,\end{align*}
+where the last step uses the induction hypothesis. To continue, we must go back to the algorithm to obtain
+\begin{equation}
+\vec p_{i+1} = \vec r_{i+1} + \beta_i \vec p_i \label{Prec}	% Prec = P recurrance
+,\end{equation}
+which means that $\vec r_i = \vec p_{i+1} - \beta_i \vec p_i$.
+Examination of $\aip{r_i}{p_j}$ shows that
+\begin{align*}
+\aip{r_i}{p_j} = \aip{p_{i+1}}{p_j} - \beta_i \aip{p_i}{p_j}
+,\end{align*}
+and this is identically zero since both terms on the right-hand-side are zero because $\vec p_i$ is conjugate and our restriction that $j<i-1$. Hence we have proved that $\langle \vec r_i,\vec r_j \rangle = 0$ for $j<i-1$. 
+
+\subsubsection{Consecutive Residuals ($j=i-1$)}%%%%%%%%%%%%%%
+\pindent{}For the case that $j=i-1$, we have
+\begin{align*}
+\ip{r_i}{r_{i-1}} &= \ip{r_{i-1}}{r_{i-1}} -\alpha_{i-1} \langle \bfa\vec p_{i-1}, \vec r_{i-1} \rangle \\
+&= \ip{r_{i-1}}{r_{i-1}} -\frac{\ip{r_{i-1}}{r_{i-1}}}{\aip{p_{i-1}}{r_{i-1}}} \langle \bfa\vec p_{i-1}, \vec r_{i-1} \rangle \\
+&= \ip{r_{i-1}}{r_{i-1}} - \ip{r_{i-1}}{r_{i-1}} \\
+&= 0
+,\end{align*}
+where we have used $\alpha_{i-1}=\dfrac{\ip{r_{i-1}}{r_{i-1}}}{\aip{p_{i-1}}{r_{i-1}}}$. However, according to the algorithm, $\alpha_{i-1}=\dfrac{\ip{p_{i-1}}{r_{i-1}}}{\aip{p_{i-1}}{p_{i-1}}}$. If we can show that these two expression are equivalent, then \eq{OrthRes} is proved.
+
+First let us consider the denominators for these expressions for $\alpha_{i-1}$, where we need to show that $\aip{p_{i-1}}{r_{i-1}} = \aip{p_{i-1}}{p_{i-1}}$. From \eq{Prec}, we can take the A-norm of $\vec p_i$ to get
+\[
+\aip{p_i}{p_i} = \aip{r_i}{p_i} + \beta_{i-1} \aip{p_{i-1}}{p_i}
+\]
+Again using the conjugate nature of $\vec p_i$, this reduces simply to $\aip{p_i}{p_i} = \aip{r_i}{p_i}$. 
+
+Next let us examine the numerator to show that $\ip{r_{i-1}}{r_{i-1}} = \ip{p_{i-1}}{r_{i-1}}$. By substituting \eq{Prec} into the magnitude of $\vec r_i$, we have 
+\[
+|\vec r_i| = \ip{r_i}{r_i} = \ip{p_i}{r_i}  - \beta_{i-1}\ip{p_{i-1}}{r_i}
+.\]
+Taking a slight detour, from $\vec r_{i+1} = \vec r_i-\alpha_i \bfa \vec p_i$ and $\alpha_i = \dfrac{\ip{p_i}{r_i}}{\aip{p_i}{p_i}}$ we can determine
+\begin{align*}
+\ip{p_j}{r_{i+1}} &= \ip{p_j}{r_i} - \alpha_i \aip{p_j}{p_i} \\ \yestag \label{OrthPR}
+&=
+\begin{cases}
+\ip{p_j}{r_i}   & (i\neq j) \\
+0 & (i = j)
+\end{cases}.
+\end{align*}
+This leads to the following interesting property,
+\[
+\ip{p_i}{r_0} = \ip{ p_i}{r_1} = \cdots = \ip{p_i}{r_i}
+.\]
+Another a consequence of \eq{OrthPR} is $\ip{p_{i-1}}{r_i} = 0$. Hence, 
+\[
+\ip{r_i}{r_i} = \ip{p_i}{r_i}  - \beta_{i-1}\ip{p_{i-1}}{r_i} = \ip{p_i}{r_i}
+.\]
+Therefore we have found equivalent expressions for $\alpha_i$:
+\begin{equation}
+\alpha_i = \dfrac{\ip{p_i}{r_i}}{\aip{p_i}{p_i}}=\dfrac{\ip{r_i}{r_i}}{\aip{p_i}{p_i}}=\dfrac{\ip{p_i}{r_i}}{\aip{r_i}{p_i}}=\dfrac{\ip{r_i}{r_i}}{\aip{r_i}{p_i}} \label{AlphaOptions}
+.\end{equation}
+Hence \eq{OrthRes} is proved.
+
+\subsection{Induction Proof of Conjugate Search-Directions}%%%%%%%%%%%%%%
+\pindent{}The proof of \eq{ConjP} also comes from induction. Using \eq{Prec}, we can take the A-norm of $\vec p_i$ and $\vec p_j$ to obtain
+\[
+\aip{p_i}{p_j} = \aip{r_i}{p_j} + \beta_{i-1}\aip{p_{i-1}}{p_j}
+.\]
+
+\subsubsection{Trivial Step ($j<i-1$)}%%%%%%%%%%%%%%
+\pindent{}Starting for the case of $(j<i-1)$, from the trivial step, when $j=0$, we have
+\begin{align*}
+\aip{p_i}{p_0} &= \aip{r_i}{p_0} + \beta_{i-1}\aip{p_{i-1}}{p_0} \\
+&= \aip{r_i}{p_0} + \beta_{i-1}\langle \bfa\vec p_{i-1},\vec r_0\rangle 
+,\end{align*}
+where we have simply moved the matrix within the inner product on the second term as well as  equate $\vec p_0 = \vec r_0$. We must pause here shortly to bring in two necessary relations.
+
+If we take the inner product of two residual vectors $i$ and $j$ and use \eq{ResRec}, we have 
+\[
+\ip{r_i}{r_j} = \ip{r_{i-1}}{r_j} -\alpha_i\langle\bfa\vec p_{i-1},\vec r_j\rangle
+.\]
+Under the restriction that $j<i-1$, two of these terms immediately go to zero. Because $\alpha_i$ is always non-zero, what is left is simply 
+\begin{equation}
+\langle\bfa\vec p_{i-1},\vec r_j\rangle=0 \qquad (j<i-1) \label{PorthRel1}
+.\end{equation}
+The other relation we need is again from \eq{ResRec} where we choose $i=0$. This allows us to write
+\begin{equation}
+\frac{1}{\alpha_0}(\vec r_0-\vec r_1) = \bfa \vec p_0 \label{PorthRel2}
+.\end{equation}
+
+Plugging \eq{PorthRel1} and \eq{PorthRel2} terms back into our expression for $\aip{p_i}{p_0}$ gives us
+\begin{align*}
+\aip{p_i}{p_0} &= \aip{r_i}{p_0} + \beta_{i-1}\aip{p_{i-1}}{p_0} \\
+&= \frac{1}{\alpha_0}\ip{r_i}{r_0-\vec r_1} + \beta_{i-1}\cdot 0 \\
+&= \frac{1}{\alpha_0}\ip{r_i}{r_0} - \frac{1}{\alpha_0}\ip{r_i}{r_1} \\
+&= 0
+.\end{align*}
+This proves the trivial step for the proof by induction of orthogonal search-directions for $j<i-1$.
+
+\subsubsection{Induction Hypothesis ($j<i-1$)}%%%%%%%%%%%%%%
+\pindent{}The next step in the proof is to assume the induction hypothesis is true,
+\[
+\aip{p_i}{p_j}=0
+,\]
+and then to show the next iteration is true,
+\[
+\aip{p_i}{p_{j+1}}=0
+.\]
+If we substitute \eq{Prec} for $j+1$, we have
+\begin{align*}
+\aip{p_i}{p_{j+1}} &= \aip{p_i}{r_{j+1}+\beta_j\vec p_j} \\
+&= \aip{p_i}{r_{j+1}}+\beta_j\aip{p_i}{p_j}
+.\end{align*}
+The first term is zero from \eq{PorthRel1}, and the second term is zero by the induction hypothesis. Accordingly, we have shown $\aip{p_i}{p_{j+1}} = 0$ for $j<i-1$.
+
+\subsubsection{Consecutive Search-Directions ($j=i-1$)}
+\pindent{}For the case that $j=i-1$, we have
+\begin{align*}
+\aip{p_i}{p_j} &= \aip{r_i}{p_j} + \beta_{i-1}\aip{p_{i-1}}{p_j} \\
+\aip{p_i}{p_{i-1}} &= \aip{r_i}{p_{i-1}} + \beta_{i-1}\aip{p_{i-1}}{p_{i-1}}
+.\end{align*}
+From the CG algorithm, we have $\beta_{i-1}=-\dfrac{\aip{r_i}{p_{i-1}}}{\aip{p_{i-1}}{p_{i-1}}}$. When this substitution is made, we are left with simply $\aip{p_i}{p_{i-1}} = \aip{r_i}{p_{i-1}}-\aip{r_i}{p_{i-1}}\equiv 0$.
+
+\subsection{Completing The Proof}
+\pindent{}While the proofs in this section are not rigorously formal, they do show one more fact. To prove logical equivalence of A and B, also stated as `$A \Leftrightarrow B$', `A iff B', and `A if and only if B', one must do two separate proofs: `If A, Then B' followed by `If B, Then A', where you take one logical statement as true and use that to show the other logical statement is true. Doing that both ways completes the proof. This in fact is what we have done. First, we showed proved \eq{OrthRes} assuming \eq{ConjP}, and then we proved \eq{ConjP} assuming \eq{OrthRes}. Therefore, both hold in the CG method.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Other CG Properties and Expressions}
+\pindent{}This section will examine a few of the other properties of the CG method. The focus here is terms and formulas which I consider important for comprehension of the method or for enhancement computationally. Nothing regarding convergence or error is included since that does not meet my criteria for being necessary for the purpose of this paper.
+
+\subsection{Alternate Expressions for $\alpha_i$ and $\beta_i$}%%%%%%%%%%%%%%
+\pindent{}The scalars $\alpha_i$ and $\beta_i$ are scale factors intended to increase stability. If these values are simply set to unity, the CG method reduces simply to the Gradient Decent method. The Gradient Decent method works best when contour lines of the natural energy function (discussed later) are circular. However, the contours are only circular if the matrix $\bfa$ is the identity. In the CG method, the contours are circular in the A-norm. In other words, instead of taking the orthogonal path from the contours as one would do with Gradient Decent, one takes the conjugate path from the contours with CG.
+
+There are two important forms for both $\alpha_i$ and $\beta_i$: 
+\begin{align}
+&\alpha_i = \dfrac{|r_i|^2}{\aip{p_i}{p_i}} = \dfrac{\ip{p_i}{r_i}}{\aip{p_i}{p_i}} \\
+&\beta_i = \dfrac{|r_{i+1}|^2}{|r_i|^2} \quad= -\dfrac{\aip{r_{i+1}}{p_i}}{\aip{p_i}{p_i}}
+.\end{align}
+Initial studies by Hestenes and Stiefel show that the expressions furthest to the right obtain the best results\cite{CG1952}.  We have already shown the equivalence of $\alpha_i$ in \eq{AlphaOptions}. To show the expressions for $\beta_i$, begin with taking the A-norm of $\vec p_i$ and $\vec p_{i+1}$, which of course is zero, but substitute in \eq{Prec}. The complete series of steps is shown below:
+\begin{align*}
+\aip{p_{i+1}}{p_i} &= \aip{r_{i+1}+\beta_i\vec p_i}{p_i} \\
+0&= \aip{r_{i+1}}{p_i}+\beta_i\aip{p_i}{p_i} \\ 
+0&= \frac{1}{\alpha_i}\ip{r_{i+1}}{r_i-\vec r_{i+1}}+\beta_i\aip{p_i}{p_i} \\
+0&= \frac{-1}{\alpha_i}\ip{r_{i+1}}{r_{i+1}}+\beta_i\aip{p_i}{p_i} \\
+\beta_i &= \dfrac{\ip{r_{i+1}}{r_{i+1}}}{\alpha_i\aip{p_i}{p_i}} \\
+\beta_i &= \dfrac{\ip{r_{i+1}}{r_{i+1}}}{\ip{r_i}{r_i}} \\
+\beta_i &= \dfrac{|\vec r_{i+1}|^2}{|\vec r_i|^2}
+.\end{align*}
+The third line comes from taking \eq{ResRec} in the form $\bfa\vec p_i = \dfrac{\vec r_i - \vec r_{i+1}}{\alpha_i}$. Eliminating $\ip{r_i}{r_{i+1}}$ and solving for $\beta_i$ gives the fifth line. The sixth line comes from one of the alternate expressions for $\alpha_i$ in \eq{AlphaOptions}.
+
+\subsection{Residual}%%%%%%%%%%%%%%
+\pindent{}The residual is computed in the CG algorithm as \eq{ResRec}, which is a recurrence relation. However, the residual is defined as
+\begin{equation} \vec r_i = \vec b - \bfa \vec x_i ,\end{equation}
+where $\vec x_i$ is just $\vec x_i =\alpha_0 \vec p_0 + \alpha_1 \vec p_1 + \cdots + \alpha_{i-1} \vec p_{i-1}$, as in \eq{Basis}. Hence, we can write the residual in full as
+\begin{equation}
+\vec r_{i+1} = \vec b - \left ( \alpha_0 \bfa \vec p_0 + \alpha_1 \bfa \vec p_1 + \cdots + \alpha_i \bfa \vec p_i 	\right ) \label{Rez}
+.\end{equation}
+The difference between two consecutive residuals is also obvious, $\vec r_{i+1}-\vec r_i = -\alpha_i\bfa\vec p_i$, which matches \eq{ResRec}. This means that we need only to modify a single residual vector at each step, subtracting the $\alpha_i \bfa\vec p_i$, instead of having to calculate a sum that increases in length with each step.
+
+In the CG method, the magnitude of the residual decreases with each step. However, for the more general Conjugate Directions (CD) method, the residual magnitude may increase or decrease at each step (always with a decrease at the $n^{th}$ step), meaning the residual magnitude is not the best indicator of convergence \cite{CG1952}. The reason for this is that the residual is not what is being minimized. There is a function that is more effective to measure the `goodness' of a solution, and this function is what is being minimized.
+
+\subsection{Error Function}%%%%%%%%%%%%%%
+\pindent{}The `goodness' of an estimate for the solution of $\bfa\vec x = \vec b$ is a measure of how close $\vec x_i$ is to the true solution, which we will call $\vec h$. Since $\vec b=\bfa\vec h$, we can write the residual as
+\[
+\vec r_i = \vec b - \bfa \vec x_i = \bfa(\vec h - \vec x_i)
+.\]
+It is this difference, $\vec h-\vec x$, that we wish to minimize. However, the space in which we want to minimize the difference is not the standard inner product space, but the A-norm. This leads to the definition of the error function,
+\begin{equation}
+f(\vec x) = \langle \vec h-\vec x,\bfa(\vec h-\vec x)\rangle \label{ErrFun}
+.\end{equation}
+We can expand and simplify \eq{ErrFun} as shown below,
+\begin{align*}
+f(\vec x) &=\langle \vec h-\vec x,\bfa(\vec h-\vec x)\rangle \\
+&=\aip{h}{h}-\aip{h}{x}-\aip{x}{h}+\aip{x}{x} \\
+&=\ip{h}{b}-\aip{x}{h}-\ip{x}{b}+\aip{x}{x} \\
+&=\ip{h}{b}-2\ip{x}{b}+\aip{x}{x}
+.\end{align*}
+The error function is strictly non-negative, only zero when $\vec x = \vec h$\cite{CG1952}, stated mathematically below:
+\begin{align*}
+f(\vec x) &> 0 \qquad (\vec x \ne \vec h) \\
+f(\vec x) &= 0 \qquad (\vec x = \vec h)
+.\end{align*}
+It can be shown that the CG algorithm minimizes this error function at each step\cite{Trefethen97}.
+
+The calculation of this function requires knowing the true solution, $\vec h$. However, we cannot know the solution while we are trying to calculate it. Hestenes and Stiefel's paper discuss means to approximate this function in terms of the residual and a Rayleigh quotient\cite{CG1952}. Because we are employing the CG method instead of the more general CD method, it is not important to go into detail about it, and we will stick to using the magnitude of the residual as a means of quantifying the `goodness' of the solution.  Any CD-method which has mutually orthogonal residual vectors is essentially a CG-method\cite{CG1952}, since the only restriction on a CD-method is that the search directions are mutually orthogonal.
+
+\subsection{Gradient of What?}%%%%%%%%%%%%%%
+\pindent{}While the `Conjugate' part of `Conjugate Gradient' is obvious, $\aip{x}{y}=0$,
+the origin of the word `Gradient' comes from the error function as well as viewing the problem as one of optimization. The function being optimized, sometimes called the natural energy function\cite{VideoLecture}, is defined as
+\begin{align*}
+\phi(\vec x) &= \frac{1}{2}\aip{x}{x}-\ip{x}{b} \\ \yestag
+&= \frac{1}{2}\vec x^T\bfa\vec x - \vec x^T\vec b
+.\end{align*}
+
+Taking the gradient of this function is as straightforward as if we assume we had a scalar function, $\frac{d}{dx}(\frac{1}{2}Ax^2-bx)=Ax-b$\cite{VideoLecture}. Hence, the gradient of the natural energy function is defined as $\bfa \vec x - \vec b$. One knows from fundamental calculus that the maximum or minimum of a function is where the derivative is zero. We know that the energy function has a minimum, not a maximum, because $\bfa$ is SPD. Therefore, the minimum of the energy function is when $\vec x = \vec h$. The function $\phi(\vec x)$ is called the natural energy because minimizing it solves $\bfa\vec x = \vec b$. When one finds $\vec x = \vec h$, he has solved the matrix equation as well as optimized the natural energy function. For this reason, the CG method can be viewed as a linear solver and/or as an optimizer. It can be showed that the choice for $\alpha_i$ ensures that the optimal step length is chosen along each search direction, and that when the function $\phi(\vec x)$ is minimized over $\vec x$, it is minimized over the entire vector space\cite{Trefethen97}.
+
+If one compares the error function, $f(\vec x)$, with the natural energy function, $\phi(\vec x)$, one can see that
+\begin{align*}
+f(\vec x) &=\ip{h}{b}-2\ip{x}{b}+\aip{x}{x} \\
+&=2\left(\frac{1}{2}\aip{x}{x}-\ip{x}{b}\right)+\ip{h}{b} \\
+&= 2\phi(\vec x)+\ip{h}{b}
+\end{align*}
+Therefore, the error function is equal to a constant plus two times the natural energy function. The constant factor, $\ip{h}{b}$, does not depend on $\vec x$, but it does depend on knowing the solution. However, since this term is constant, minimizing the error function is achieved when the natural energy function is minimized, and for both cases this occurs when $\vec x = \vec h$\cite{Trefethen97}.  Hence, using the the natural energy function instead of the error function is advantageous because it can be calculated at any step $i$ with $\vec x_i$.
+
+\subsection{Krylov Subspace}%%%%%%%%%%%%%%
+\pindent{}The last point I would consider crucial to being aware of before using the CG method is that this method is a Krylov subspace iteration. The $n^{th}$ Krylov subspace is defined as
+\begin{equation}
+\mathcal{K}_n = \text{span}\left\{\vec b,\bfa \vec b,\bfa^2 \vec b, ... , \bfa^{n-1}\vec b \right\}
+.\end{equation}
+A Krylov based numerical solver will add one more dimension to its vector space on each iteration. The first iteration has a very small vector space, $\mathcal{K}_1=\{\vec b\}$, and the second has just two vectors to span the subspace, and so on. A typical issue facing a Krylov method is that one needs to construct a large amount of vectors, which means a large amount of matrix-vector multiplication, in order to get a useful solution. However, for the CG method, one will often need just $n$ or less iterations, and one does not need to store each of these vectors.
+
+The CG method is a Krylov method because at each iteration another factor of $\bfa$ is multiplied. This occurs in the calculation of the residual, \eq{ResRec}, and is reflected in the new search-direction, \eq{Prec}, because $\vec p_i$ is defined in terms of $\vec r_i$. Since $\vec x_{i+1}$ is defined in terms of $\vec p_i,$ then $\vec x_{i+1}$, $\vec p_i$, and $\vec r_i$ all span the subspace $\mathcal{K}_i$\cite{Trefethen97}. This can be stated mathematically as
+\begin{align*}
+\mathcal{K}_n &= \text{span}\left\{\vec b,\bfa \vec b,\bfa^2 \vec b, ... , \bfa^{n-1}\vec b \right\} = \text{span}\left\{\vec x_1, \vec x_2,\vec x_3, ..., \vec x_n \right\}\\ \yestag \label{Krylov}
+&= \text{span}\left\{\vec p_0,\vec p_1,\vec p_2,...,\vec p_{n-1}\right\}=\text{span}\left\{\vec r_0,\vec r_1, \vec r_2, ...,\vec r_{n-1}\right\}
+.\end{align*}
+While each step increases the dimension of the Krylov space by one, it decreases the dimension of the vector space in which the solution is sought by one\cite{CG1952}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Summary}%%%%%%%%%%%%%%
+\pindent{}We have now introduced all necessary formulas and expressions and definitions needed for the CG method. In this section we will simply restate the loop part of the algorithm, and then give a written explanation for what each step is doing.
+\begin{align}
+\alpha_i &= \dfrac{\ip{p_i}{r_i}}{\aip{p_i}{p_i}} \label{CGalpha} \\
+\vec x_{i+1} &= \vec x_i + \alpha_i \vec p_i \label{CGx} \\
+\vec r_{i+1} &= \vec r_i - \alpha_i \bfa \vec p_i \label{CGr} \\
+\beta_i &=-\dfrac{\aip{r_{i+1}}{p_i}}{\aip{p_i}{p_i}} \label{CGbeta} \\
+\vec p_{i+1} &= \vec r_{i+1} + \beta_i \vec p_i \label{CGp}
+\end{align}
+\eq{CGalpha} is a scalar that simply weights how far along the direction $\vec p_i$ we need to adjust $\vec x_{i+1}$ for optimal stability and convergence. It is simply the ratio of the projection of $\vec p_i$ onto $\vec r_i$ with the A-norm of $\vec p_i$. To calculate the next approximation of the solution in the $i^{th}$ iteration, \eq{CGx}, we simply add the next weighted, basis vector, $\vec p_i$, which was calculated in the previous iteration. This step is straightforward since $\vec x$ is expressed as a weighted sum of the basis for the current Krylov subspace, as in \eq{Basis}. Another way to view \eq{CGx} is that the search-direction $\vec p_i$ is a scalar multiple of the gradient of $\vec x_i$, $\alpha_i\vec p_i = \vec x_{i+1}-\vec x_i$. This means that the direction $\vec p_i$ will go in the direction that the gradient, $\Delta\vec x_i=\vec x_{i+1}-\vec x_i$, goes.
+
+To calculate the next residual, \eq{CGr}, we must subtract the newest, weighted, basis vector after multiplying by $\bfa$. What is happening in this step is taking the residual, the amount of how far off we are, and then removing the amount that we have improved the solution. Since $\vec r_i = \vec b - \bfa \vec x_i$, and we have improved the solution by $\alpha_i\vec p_i$, the update for the residual is simply $-\alpha_i\bfa\vec p_i$. This can also be looked at as the step that enforces the A-orthogonality because this is where the contribution from the $\bfa\vec p_i$ term is removed, and the subsequent search-directions are equated to the residual. \eq{CGbeta} is a scalar weight chosen to help select the next search-direction. The specific choice of $\beta_i$ allows for the optimal solution of the error function and energy function for each step, although different choices could be made for slightly different CG-like methods.
+
+The last step, \eq{CGp}, is the most subtle, however certain substitutions help illuminate what is happening. If one uses $\beta_i=\frac{|\vec r_{i+1}|^2}{|\vec r_i|^2}$ and $\vec p_0=\vec r_0$, one can readily obtain the following by substitution of \eq{CGp}, 
+\begin{align*}
+\vec p_1&=\vec r_1+\frac{|\vec r_1|^2}{|\vec r_0|^2}\vec r_0 \\
+\vec p_2&=\vec r_2+\frac{|\vec r_2|^2}{|\vec r_1|^2}\vec r_1+ \frac{|\vec r_2|^2}{|\vec r_0|^2}\vec r_0 \\
+&\vdots \\
+\vec p_i&=\sum_{j=0}^i\frac{|\vec r_i|^2}{|\vec r_j|^2}\vec r_j \\
+\vec p_i&=|\vec r_i|^2 \sum_{j=0}^i \hat r_j 
+,\end{align*}
+where $\hat r_j$ is the normalized residual, $\hat r_j = \frac{\vec r_j}{|\vec r_j|^2}$. This means that the $i^{th}$ search-direction is just a sum of the residual-basis, $\{\vec r_0,\vec r_1,...,\vec r_i \}$, all multiplied by the magnitude of the $i^{th}$ residual. The residuals themselves account for the A-orthogonality. Since the residuals are mutually orthogonal, each new residual $\vec r_{i+1}$ will be perpendicular to the previous Krylov space, $\mathcal{K}_i=\{\vec r_0,\vec r_1,...,\vec r_i \}$. \eq{CGp} therefore creates a vector that is mutually conjugate with all previous search-directions as well as orthogonal to the previous Krylov space, making it a basis vector as well.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\addcontentsline{toc}{section}{References}
+\bibliographystyle{lefty}
+\bibliography{CGbib}
+
+\end{document}

@@ -1,0 +1,45 @@
+This is BibTeX, Version 0.99c (TeX Live 2009)
+The top-level auxiliary file: Conjugate Gradient.aux
+The style file: lefty.bst
+Database file #1: CGbib.bib
+You've used 3 entries,
+            2302 wiz_defined-function locations,
+            531 strings with 4234 characters,
+and the built_in function-call counts, 790 in all, are:
+= -- 53
+> -- 18
+< -- 0
++ -- 8
+- -- 5
+* -- 36
+:= -- 97
+add.period$ -- 8
+call.type$ -- 3
+change.case$ -- 0
+chr.to.int$ -- 0
+cite$ -- 3
+duplicate$ -- 75
+empty$ -- 92
+format.name$ -- 7
+if$ -- 176
+int.to.chr$ -- 0
+int.to.str$ -- 3
+missing$ -- 20
+newline$ -- 17
+num.names$ -- 3
+pop$ -- 34
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 22
+stack$ -- 0
+substring$ -- 21
+swap$ -- 45
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 5
+warning$ -- 0
+while$ -- 4
+width$ -- 4
+write$ -- 30

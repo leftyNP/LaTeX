@@ -1,0 +1,121 @@
+\documentclass[11pt,letterpaper,oneside,notitlepage]{article}	% specify paper type/format
+
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}	% partial derivative
+\newcommand{\tensor}{\overleftrightarrow}		% tensor command
+\newcommand{\del}{\vec\nabla}				% Del operator
+\newcommand{\dop}{\tensor{\mathcal{D}}}		% Divergence operator (contrived)
+\newcommand{\flux}{\tensor{\mathcal{G}}}		% Flux operator (contrived)
+\newcommand{\yestag}{\tag{\theequation}\stepcounter{equation}}	% tags an equation number in the align* structure
+\newcommand{\eq}[1]{Equation \eqref{#1}}		% Formated equation command
+\newcommand{\half}{\tfrac{1}{2}}
+
+\setlength{\parindent}{6mm}  					% paragraph indent size
+\newcommand{\pindent}[1]{\hspace{6mm}}  		% first paragraph indent size (match value with \parindent)
+\linespread{1} 		     						% set spacing for entire paper
+										% 1.6 is double spacing, 1 is single spaced
+\usepackage{setspace}						% Allows me to set entire document spacing
+\usepackage{amsmath}						% Needed for tensor symbol \overleftrightarrow{}
+\usepackage{graphicx}						% Allows figures to be plotted
+\usepackage{subfigure}						% Make multiple images in one figure
+%\numberwithin{equation}{section}				% Makes equation number relative to section
+
+\begin{document}							% above = preamble, below = document
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Boundary Conditions for Support Operator Method}%%%%%%%%%%%%%%
+\pindent{}The following are some notes on my derivation of the boundary methods from the file SOM2.pdf.  There are three types of boundary conditions (BC) to consider: Dirichlet, Neumann, and Robin. The Dirichlet BC defines face $k$ of a cell, $\phi^k$, on the boundary,
+\begin{equation}
+\phi^k=\phi_{BC}	\label{dirichlet}
+.\end{equation}
+The Neumann BC defines the derivative of a function on face $k$ of a cell on the boundary. Since the flux is highly related and more important than just the derivative of the function, we will work specifically with the flux for this BC. Recalling that 
+\begin{equation} 
+\vec F = -\tensor K\del\phi		\label{flux}
+,\end{equation}
+one defines a Neumann BC as
+\begin{equation}
+f^k = f_{BC}	\label{neumann}
+.\end{equation}
+The specific means of altering the zonal matrix are given in the SOM2 paper.  What is focused on here is the Robin BC, which is a linear combination of the Dirichlet and the Neumann BC. 
+
+Before we proceed, it will be instructive to define the units of the variables in play for this paper.
+\begin{table}[h]	% Marks this section as a table (similar to figure)
+\begin{centering}	% Force table to appear in middle of page, not left justified
+\begin{tabular}{| c | c | c |}	% Begin tabular environment (actual table)
+\hline	% draws a horizontal line
+Variable & Units & Description \\
+  \hline\hline
+  $\bf K$ & $\frac{m^2}{s}$ & Diffusion Tensor \\	\hline 
+  $\phi$ & $\frac{x}{m^3}$ & Concentration Function \\	\hline
+  $\vec F$ & $\frac{x}{m^2 s}$ & Flux Vector \\	\hline
+  $\bf A$  & $m^2$ & Area Matrix \\	\hline
+  $\bf Z$  & $\frac{m^3}{s}$ & Zonal Matrix \\	\hline
+  $\vec b$  &  $\frac{x}{s}$ & Right-Hand-Side \\
+  \hline  
+\end{tabular}
+\caption{Variables and units}	% caption
+\end{centering}
+\label{Units}
+\end{table}
+Table \ref{Units} gives a summary of the units of variables used in the section. Note that $m$ is a distance in meter, $s$ is a time in seconds, and $x$ is the amount of the diffusive species (light intensity, particle concentration, temperature, etc). We recall that our zonal matrix, $\tensor Z$, is the product of area with flux, with an equation in the form of 
+\begin{equation}
+A^i f^i = \sum_{j=1}^4 Z_{i,j} \phi^j \label{FluxSystem}
+.\end{equation}
+From this, we see that our system, ${\bf Z}\vec\phi=\vec b$, is in units of $\frac{x}{s}$, flux is in units of $\frac{x}{sm^2}$, and concentration is in terms of $\frac{x}{m^3}$. We desire to express a linear combination of \eq{flux} and \eq{neumann} in terms of our system of equations, which has units of $\frac{x}{s}$. We see that if we want to express our flux BC in terms of our system, we must multiply by area, leading to 
+\begin{equation}
+A^k f^k = A^k f_{BC} \label{N}
+.\end{equation}
+To express the Dirichlet BC in terms of our system, we must multiply by a volumetric velocity term, i.e. one with units of $\frac{m^3}{s}$. This would give us the proper form needed for a linear combination,
+\begin{equation}
+v\phi^k = v\phi_{BC} \label{D},
+\end{equation}
+where $v$ is not yet defined.
+
+We can combine \eq{D} and \eq{N} to form the Robin BC since both of these equation have equivalent units ($\frac{x}{s}$):
+\begin{equation}
+\alpha v \phi^k + \beta A^k f^k = \alpha v \phi_{BC} + \beta A^k f_{BC} \label{RobinFull}
+,\end{equation}
+where $\alpha$ and $\beta$ are scalar weights, summing to one. Defining the RHS to be 
+\begin{equation}
+\psi_{BC} =  \alpha v \phi_{BC} + \beta A^k f_{BC}
+,\end{equation}
+gives us a straightforward representation,
+\begin{equation}
+\alpha v \phi^k + \beta A^k f^k = \psi_{BC} \label{R}
+.\end{equation}
+
+To determine what value the velocity term should have, we must construct a term with units of velocity from known values associated with face k. If we say that we are on the left or right face, then an associated value with $\phi^k$ is $K^{xx}$, which has units of $\frac{m^2}{s}$. If we multiply by the area of that face, $A^k$, and divide by a distance $d$, where $d$ is the distance we extrapolate our boundary to in order to satisfy the BC, then we have our velocity term:
+\begin{equation} 
+v=\frac{A^k K^{s}}{d},
+\end{equation}
+where $K^s$ is the appropriate diffusion tensor term (xx for a left or right face, yy for a top or bottom face).
+
+The necessary modifications to the zonal matrix are immediately apparent once we substitute \eq{FluxSystem} into \eq{R}:
+\begin{align*}
+\beta A^k f^k +\alpha v \phi^k  &= \psi_{BC} \\ \yestag
+ \sum_{j=1}^4 Z_{k,j} \phi^j + \frac{\alpha}{\beta} v \phi^k  &= \frac{1}{\beta}\psi_{BC} 
+.\end{align*}
+The zonal matrix is modified then by adding a $\frac{\alpha}{\beta} v$ term to the term on the $k^{th}$ row that hits $\phi^k$, which is ${\bf Z}_{k,k}$. The corresponding RHS modification is to add a $\frac{1}{\beta}\psi_{BC}$ term to $b^k$. Note that the modification to the RHS can be expressed in terms of the individual contributions as $\frac{\alpha}{\beta} v \phi_{BC} + A^k f_{BC}$. We summarize the implementation of the Robin BC below:
+
+\begin{equation}
+Z_{i,j} = \begin{cases}
+Z_{i,j} & i\neq k\\
+Z_{i,j} + \frac{\alpha}{\beta}v\delta_{k,j} & i=k
+\end{cases}
+\end{equation}
+and
+\begin{equation}
+b_i = \begin{cases}
+b_i &\qquad i\neq k\\
+b_i + \frac{\psi_{BC}}{\beta}&\qquad i=k
+\end{cases}
+,\end{equation}
+where $\delta_{k,j}$ is the Dirac-Delta-Function, and 
+\begin{align*}
+v&=\frac{A^k K^{s}}{d} \\
+\frac{\psi_{BC}}{\beta} &=  \frac{\alpha}{\beta} v \phi_{BC} + A^k f_{BC}
+.\end{align*}
+We see that if $\alpha \to 0$, we correctly recover the Neumann BC. If $\beta\to 0$, we must go back to a form prior to dividing by $\beta$ (\eq{RobinFull}), and we see that the $v$ cancels and we recover the Dirichlet BC.
+As a final note, realize that the negative sign in \eq{flux} has been inherently imbedded into \eq{R}, so care must be taken when implementing a Robin BC to ensure the signs are correct.
+
+
+\end{document}
